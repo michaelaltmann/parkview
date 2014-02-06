@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+
+<!--
+    This is an HTML page that contains a CSS and a Javascript file.
+    
+    Run this sample by clicking the 'Preview' button on top;
+    a new tab will open with the current page open.
+-->
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Parking Simulation</title>
+        <link rel="stylesheet" href="css/main.css" type="text/css"/>
+        <script type="text/javascript" src="js/d3.v2.js"></script>
+
+    </head>
+    
+    <body>
+        <h1>Parking Simulation</h1>
+        <p class="tagline"></p>
+        <button onClick='javascipt: sim=new Simulation(); sim.initialize();' >Initialize</button>
+        <button onClick='javascipt: doSimulation();' >Start</button>
+        <div id="viz"></div>
+        <div id="status"></div>      
+        
+        <!-- load scripts at the bottom of your page -->
+        <script src="js/simulation.js"></script>
+        <script src="js/site.js"></script>
+    </body>
+</html>
