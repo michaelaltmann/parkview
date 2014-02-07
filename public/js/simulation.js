@@ -24,10 +24,11 @@ Spot.prototype.toString = function () {
     return "["+this.lat + "," + this.lng + "]";
 };
 
-function Business(simulation, name, loc, arrivalFreq, walkingTolerance, meanDuration) {
+function Business(simulation, name, loc, color, arrivalFreq, walkingTolerance, meanDuration) {
     this.simulation = simulation;
     this.name = name;
     this.loc = loc;
+    this.color = color;
     this.arrivalFreq = arrivalFreq;
     this.walkingTolerance = walkingTolerance;
     this.meanDuration = meanDuration;
@@ -58,7 +59,7 @@ ArrivalEvent.prototype.execute = function () {
         this.simulation.log("Parking in " + JSON.stringify(spot) + " for " + this.business.name);
         this.simulation.spotManager.acquire(spot);
         var departureTime = this.simulation.simulationManager.now + this.duration;
-        var v = {lat: spot.lat, lng: spot.lng, businessName: this.business.name, start: this.simulation.simulationManager.now, end: departureTime };
+        var v = {lat: spot.lat, lng: spot.lng, business: this.business, start: this.simulation.simulationManager.now, end: departureTime };
         this.simulation.vehicles.push(v);
         this.simulation.simulationManager.addEvent(new DepartureEvent(this.simulation, departureTime, spot));
     } else {
@@ -127,6 +128,7 @@ SpotManager.prototype.findSpot = function(loc, walkingTolerance) {
 //      this.log(" checking " + JSON.stringify(spot));
         var desire = this.desirability(loc, spot, walkingTolerance);
         if ((!bestDesirability) ||  bestDesirability < desire) {
+            bestDesirability = desire;
             bestSpot = spot;
         }
     }
@@ -139,7 +141,9 @@ SpotManager.prototype.release = function(spot) {
     spot.capacity++;
 };
 SpotManager.prototype.desirability = function(location, spot, walkingTolerance) {
-    return Math.abs(spot.lng - location.lng) + Math.abs(spot.lat-location.lat);
+    var dist =  Math.abs(spot.lng - location.lng) + Math.abs(spot.lat-location.lat);
+    if (dist > walkingTolerance) return 0;
+    return walkingTolerance - dist;
 };
 
 function SimulationManager (simulation) {
@@ -169,15 +173,15 @@ SimulationManager.prototype.addEvent = function(event) {
 
 this.initialize = function () {
     this.spotManager.add( new Spot(0,0,1));
-    this.spotManager.add( new Spot(0,1,1));
-    this.spotManager.add( new Spot(0,2,1));
-    this.spotManager.add( new Spot(0,3,1));
+    this.spotManager.add( new Spot(1,0,1));
+    this.spotManager.add( new Spot(2,0,1));
+    this.spotManager.add( new Spot(3,0,1));
 
     var arrivalFreq = 4.0; // about every 4 time units
     var meanDuration = 2.0; // stays about 2 time units
     var walkingTolerance = 2.5;
-    this.businesses.push(new Business(this,"Bakery", {lng: 0, lat:1} , arrivalFreq, walkingTolerance, meanDuration));
-    this.businesses.push(new Business(this,"Flowers", {lng: 3, lat:1} , arrivalFreq, walkingTolerance, meanDuration));
+    this.businesses.push(new Business(this,"Bakery", {lng: 0, lat:1}, 'brown' , arrivalFreq, walkingTolerance, meanDuration));
+    this.businesses.push(new Business(this,"Flowers", {lng: 3, lat:1}, 'green', arrivalFreq, walkingTolerance, meanDuration));
 
     this.init();
 }

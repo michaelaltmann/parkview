@@ -9,7 +9,7 @@ var svg = d3.select("#viz")
 var dt = 10;
 var t = 0;
 var maxt = 100;
-var timeScale = 1000;
+var timeScale = 100;
 function doSimulation() {
     showBackground();
     t = dt;
@@ -24,12 +24,11 @@ function showBackground() {
         .enter()
         .append("rect")
         .style("stroke", "black")
-        .style("fill", "grey")
+        .style("fill", function(d,i) { return d.color;} )
         .attr("width", 10)
         .attr("height", 20)
         .attr("x", function(d,i) { return 100 + 60*d.loc.lng;} )
-        .attr("y", 0)
-
+        .attr("y", function(d,i) { return -50 + 60*d.loc.lat;} )
         ;
 
 }
@@ -42,10 +41,7 @@ function doSimulationStep() {
     t +=  dt;
     if (t < maxt) {
         window.setTimeout(doSimulationStep, dt * timeScale);
-    } else {
-            showStatus('Alll done');
-    }
-    
+    }    
 }
 
 function display(t) {        
@@ -53,15 +49,18 @@ function display(t) {
         .data(sim.vehicles)
         .enter()
         .append("circle")
+        .attr("cx", 0)
+        .attr("cy", 0)
         .transition()
         .each('start',function(d,i) {showStatus(d.start);})
         .delay(function(d,i) { return timeScale * (d.start - sim.simulationManager.now + dt); })
         .duration(30)
         .style("stroke", "gray")
-        .style("fill", "white")
+        .style("opacity", "0.5")
+        .style("fill", function(d,i) { return d.business.color;} )
         .attr("r", 10)
-        .attr("cx", function(d,i) { return 100 + 60*d.lat;} )
-        .attr("cy", 50)
+        .attr("cx", function(d,i) { return 100 + 60*d.lng;} )
+        .attr("cy", function(d,i) { return  50 + 60*d.lat;} )
         .transition()
         .duration(30)
         .attr("r", 5)
