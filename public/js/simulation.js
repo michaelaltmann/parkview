@@ -9,7 +9,9 @@ this.log = function log(msg) {
 }
 
 
-Simulation.prototype.init = function() {
+Simulation.prototype.reset = function() {
+    this.simulationManager.reset();
+    this.spotManager.reset();
     for (var i=0; i< this.businesses.length; i++) {
         var business = this.businesses[i];
         this.simulationManager.addEvent( business.nextEvent());
@@ -18,7 +20,7 @@ Simulation.prototype.init = function() {
 function Spot(lng, lat, capacity) {
     this.lng = lng;
     this.lat = lat;
-    this.capacity = capacity; 
+    this.capacity = capacity;
 }
 Spot.prototype.toString = function () {
     return "["+this.lat + "," + this.lng + "]";
@@ -58,10 +60,11 @@ ArrivalEvent.prototype.execute = function () {
     if (spot) {
         this.simulation.log("Parking in " + JSON.stringify(spot) + " for " + this.business.name);
         this.simulation.spotManager.acquire(spot);
-        var departureTime = this.simulation.simulationManager.now + this.duration;
-        var v = {lat: spot.lat, lng: spot.lng, business: this.business, start: this.simulation.simulationManager.now, end: departureTime };
+        var now = this.simulation.simulationManager.now;
+        var departureTime = now + this.duration;
+        var v = {lat: spot.lat, lng: spot.lng, business: this.business, start: now, end: departureTime };
         this.simulation.vehicles.push(v);
-        this.simulation.simulationManager.addEvent(new DepartureEvent(this.simulation, departureTime, spot));
+        this.simulation.simulationManager.addEvent(new DepartureEvent(this.simulation, now, departureTime, spot));
     } else {
         this.simulation.log("*** Nowhere to park " + this);
     }
@@ -73,13 +76,15 @@ ArrivalEvent.prototype.toString = function () {
     return JSON.stringify({type: "Arrival", time : this.time, duration: this.duration, loc: "["+loc.lat + "," + loc.lng + "]"});
 };
 
-function DepartureEvent(simulation, time, spot ) {
+function DepartureEvent(simulation, start, time, spot ) {
     this.simulation = simulation;
+    this.start = start;
     this.time = time;
     this.spot = spot;
 }
 DepartureEvent.prototype.execute = function () {
     this.simulation.log("Leaving " + JSON.stringify(this.spot));
+    this.spot.occupancy += (this.time - this.start);
     this.simulation.spotManager.release(this.spot);
 };
 DepartureEvent.prototype.toString = function () {
@@ -112,6 +117,12 @@ EventQueue.prototype.comparator = function (x,y) {
 function SpotManager (simulation) {
     this.simulation = simulation;
     this.spots = [];
+}
+SpotManager.prototype.reset = function(spot) {
+    for (var index = 0; index < this.spots.length; ++index) {
+        var spot = this.spots[index];
+        spot.occupancy = 0.0;
+    }
 }
 SpotManager.prototype.add = function(spot) {
     this.spots.push(spot);
@@ -148,10 +159,12 @@ SpotManager.prototype.desirability = function(location, spot, walkingTolerance) 
 
 function SimulationManager (simulation) {
     this.simulation = simulation;
+}
+SimulationManager.prototype.reset = function(event) {
     this.eventQueue = new EventQueue();
     this.maxEvents = null;
     this.now = 0;
-}
+};
 
 SimulationManager.prototype.runUntil = function(endTime) {
     var events = 0;
@@ -183,7 +196,7 @@ this.initialize = function () {
     this.businesses.push(new Business(this,"Bakery", {lng: 0, lat:1}, 'brown' , arrivalFreq, walkingTolerance, meanDuration));
     this.businesses.push(new Business(this,"Flowers", {lng: 3, lat:1}, 'green', arrivalFreq, walkingTolerance, meanDuration));
 
-    this.init();
+    this.reset();
 }
 
 

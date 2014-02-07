@@ -19,10 +19,11 @@ function showStatus(s) {
     d3.select("#status").text(s);
 }
 function showBackground() {
-        svg.selectAll("circle")
+        svg.selectAll(".business")
         .data(sim.businesses)
         .enter()
         .append("rect")
+        .attr("class", "business")
         .style("stroke", "black")
         .style("fill", function(d,i) { return d.color;} )
         .attr("width", 10)
@@ -45,10 +46,11 @@ function doSimulationStep() {
 }
 
 function display(t) {        
-    svg.selectAll("circle")
+    svg.selectAll(".vehicle")
         .data(sim.vehicles)
         .enter()
         .append("circle")
+        .attr("class", "vehicle")
         .attr("cx", 0)
         .attr("cy", 0)
         .transition()
@@ -68,6 +70,23 @@ function display(t) {
         .duration(function (d,i) { return  -60+ timeScale*(d.end-d.start); })
         .each('end',function(d,i) {showStatus(d.end);})
         .remove()
-
         ;
+    
+    svg.selectAll(".spot").remove();
+    var p = svg.selectAll(".spot")
+        .data(sim.spotManager.spots)
+    ;
+    
+        p.enter()
+        .append("rect")
+        .attr("class", "spot")
+        .style("stroke", "black")
+        .style("fill", 'black' )
+        .attr("width", 4)
+        .attr("height", function(d,i) { return 30*d.occupancy/sim.simulationManager.now;} )
+        .attr("x", function(d,i) { return 100 + 60*d.lng;} )
+        .attr("y", function(d,i) { return   70 + 60*d.lat;} )
+;
+
+
 }
