@@ -4,11 +4,20 @@ var sim;
 var svg = d3.select("#viz")
         .append("svg")
         .attr("width", 900)
-        .attr("height", 100);   
+        .attr("height", 100);
+    svg
+    .append('defs')
+    .append('clipPath')
+    .attr('id', 'clip')
+    .append('circle')
+    .attr('r',10)
+    .attr('cx',10)
+    .attr('cy',10)
+;   
 
 var dt = 10;
 var t = 0;
-var maxt = 100;
+var maxt = 500;
 var timeScale = 100;
 function doSimulation() {
     showBackground();
@@ -19,6 +28,7 @@ function showStatus(s) {
     d3.select("#status").text(s);
 }
 function showBackground() {
+    svg.selectAll(".business").remove();
         svg.selectAll(".business")
         .data(sim.businesses)
         .enter()
@@ -32,7 +42,7 @@ function showBackground() {
         .attr("y", function(d,i) { return -50 + 60*d.loc.lat;} )
         ;
     
-        svg.selectAll(".spot").remove();
+    svg.selectAll(".spot").remove();
     svg.selectAll(".spot")
         .data(sim.spotManager.spots)
         .enter()
@@ -66,8 +76,8 @@ function display(t) {
         .enter()
         .append("circle")
         .attr("class", "vehicle")
-        .attr("cx", 0)
-        .attr("cy", 0)
+        .attr("cx", function(d,i) { return 100 + 60*d.lng;} )
+        .attr("cy", function(d,i) { return 200 + 60*d.lat;} )
         .transition()
         .each('start',function(d,i) {showStatus(d.start);})
         .delay(function(d,i) { return timeScale * (d.start - sim.simulationManager.now + dt); })
@@ -93,11 +103,17 @@ function display(t) {
         .enter()
         .append("rect")
         .attr("class", "spotUsage")
-        .style("stroke", "black")
-        .style("fill", 'black' )
-        .attr("width", 4)
-        .attr("height", function(d,i) { return 30*d.occupancy/sim.simulationManager.now;} )
-        .attr("x", function(d,i) { return 100 + 60*d.lng -2;} )
-        .attr("y", function(d,i) { return   70 + 60*d.lat;} )
+        .style("stroke-width", "0")
+        .style("opacity", "0.5")
+        .style("fill", 'gray' )
+        .attr("width", 20)
+        .attr("height", function(d,i) { return occupancyScale * 20*d.occupancy/sim.simulationManager.now;} )
+        .attr("clip-path", "url(#clip)")
+        .attr("y", function(d,i) { return 20 - occupancyScale* 20*d.occupancy/sim.simulationManager.now;} )
+        .attr('transform',function(d) { 
+            var dx = 100 + 60*d.lng -10 ;
+            var dy = 40 + 60*d.lat ;
+            return "translate("+dx+"," + dy + ")";})
 ;
 }
+var occupancyScale = 2;

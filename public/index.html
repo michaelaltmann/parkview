@@ -17,10 +17,11 @@
     
     <body>
         <h1>Parking Simulation</h1>
-        <p class="tagline"></p>
-        <button onClick='javascipt: sim=new Simulation(); sim.initialize();' >Initialize</button>
-        <button onClick='javascipt: doSimulation();' >Start</button>
-        <div id="viz"></div>
+        
+        This page shows a simulation of visitors coming in cars to park near three businesses. The parking spots are represented by circles.  The gray fill indicates the fraction of time that parking spot is occupied.
+        <button onClick='javascipt: if(sim) sim.stop(); sim=new Simulation(); sim.initialize(); doSimulation();' >Start</button>
+  <!--      <button onClick='javascipt: if(sim) sim.stop();' >Stop</button>
+    -->    <div id="viz"></div>
         <div id="status"></div>      
         
         <!-- load scripts at the bottom of your page -->

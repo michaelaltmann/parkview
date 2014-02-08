@@ -131,9 +131,13 @@ SpotManager.prototype.findSpot = function(loc, walkingTolerance) {
  //  this.simulation.log("Finding a spot near " + JSON.stringify(loc));
     var bestSpot = null;
     var bestDesirability = null;
-    
+    var direction;
+    if (Math.random()>0.5) direction = 1;
+    else direction = -1;
     for (var index = 0; index < this.spots.length; ++index) {
-        var spot = this.spots[index];
+        var spot;
+        if (direction > 0) spot = this.spots[index];
+        else spot = this.spots[this.spots.length-1-index];
         var capacity = spot.capacity;
         if (capacity<=0) continue;
 //      this.log(" checking " + JSON.stringify(spot));
@@ -165,12 +169,13 @@ SimulationManager.prototype.reset = function(event) {
     this.maxEvents = null;
     this.now = 0;
 };
-
-SimulationManager.prototype.runUntil = function(endTime) {
+var endTime;
+SimulationManager.prototype.runUntil = function(t) {
+    this.endTime = t;
     var events = 0;
     while (this.eventQueue.size()>0) {
         var e = this.eventQueue.peek();
-        if (e.time > endTime) return;
+        if (e.time > this.endTime) return;
         e = this.eventQueue.pop();
         this.now = e.time;
         events ++;
@@ -190,8 +195,8 @@ this.initialize = function () {
     }
 
     var arrivalFreq = 4.0; // about every 4 time units
-    var meanDuration = 2.0; // stays about 2 time units
-    var walkingTolerance = 2.5;
+    var meanDuration = 5.0; // stays about 5 time units
+    var walkingTolerance = 3.5;
     this.businesses.push(new Business(this,"Bakery", {lng: 0, lat:1}, 'yellow' , arrivalFreq, walkingTolerance, meanDuration));
     this.businesses.push(new Business(this,"Flowers", {lng: 3, lat:1}, 'green', arrivalFreq, walkingTolerance, meanDuration));
     this.businesses.push(new Business(this,"Hardware", {lng: 8, lat:1}, 'red' , arrivalFreq, walkingTolerance, meanDuration));
@@ -203,6 +208,9 @@ this.initialize = function () {
 
 this.runUntil = function (time) {
     this.simulationManager.runUntil(time);
+}
+this.stop = function () {
+    this.simulationManager.endTime =0;
 }
 }
 
