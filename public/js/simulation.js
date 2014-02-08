@@ -185,16 +185,16 @@ SimulationManager.prototype.addEvent = function(event) {
 };
 
 this.initialize = function () {
-    this.spotManager.add( new Spot(0,0,1));
-    this.spotManager.add( new Spot(1,0,1));
-    this.spotManager.add( new Spot(2,0,1));
-    this.spotManager.add( new Spot(3,0,1));
+    for (var i=0; i < 10; i++) {
+        this.spotManager.add( new Spot(i,0,1));
+    }
 
     var arrivalFreq = 4.0; // about every 4 time units
     var meanDuration = 2.0; // stays about 2 time units
     var walkingTolerance = 2.5;
-    this.businesses.push(new Business(this,"Bakery", {lng: 0, lat:1}, 'brown' , arrivalFreq, walkingTolerance, meanDuration));
+    this.businesses.push(new Business(this,"Bakery", {lng: 0, lat:1}, 'yellow' , arrivalFreq, walkingTolerance, meanDuration));
     this.businesses.push(new Business(this,"Flowers", {lng: 3, lat:1}, 'green', arrivalFreq, walkingTolerance, meanDuration));
+    this.businesses.push(new Business(this,"Hardware", {lng: 8, lat:1}, 'red' , arrivalFreq, walkingTolerance, meanDuration));
 
     this.reset();
 }

@@ -3,7 +3,7 @@ var sim;
 
 var svg = d3.select("#viz")
         .append("svg")
-        .attr("width", 500)
+        .attr("width", 900)
         .attr("height", 100);   
 
 var dt = 10;
@@ -28,9 +28,24 @@ function showBackground() {
         .style("fill", function(d,i) { return d.color;} )
         .attr("width", 10)
         .attr("height", 20)
-        .attr("x", function(d,i) { return 100 + 60*d.loc.lng;} )
+        .attr("x", function(d,i) { return 100 + 60*d.loc.lng -5;} )
         .attr("y", function(d,i) { return -50 + 60*d.loc.lat;} )
         ;
+    
+        svg.selectAll(".spot").remove();
+    svg.selectAll(".spot")
+        .data(sim.spotManager.spots)
+        .enter()
+        .append("circle")
+        .attr("class", "spot")
+        .style("stroke", "black")
+        .style("opacity", "1.0")
+        .style("fill", "none" )
+        .attr("r", 12)
+        .attr("cx", function(d,i) { return 100 + 60*d.lng;} )
+        .attr("cy", function(d,i) { return  50 + 60*d.lat;} )
+;
+
 
 }
 function doSimulationStep() {
@@ -72,21 +87,17 @@ function display(t) {
         .remove()
         ;
     
-    svg.selectAll(".spot").remove();
-    var p = svg.selectAll(".spot")
+    svg.selectAll(".spotUsage").remove();
+    svg.selectAll(".spotUsage")
         .data(sim.spotManager.spots)
-    ;
-    
-        p.enter()
+        .enter()
         .append("rect")
-        .attr("class", "spot")
+        .attr("class", "spotUsage")
         .style("stroke", "black")
         .style("fill", 'black' )
         .attr("width", 4)
         .attr("height", function(d,i) { return 30*d.occupancy/sim.simulationManager.now;} )
-        .attr("x", function(d,i) { return 100 + 60*d.lng;} )
+        .attr("x", function(d,i) { return 100 + 60*d.lng -2;} )
         .attr("y", function(d,i) { return   70 + 60*d.lat;} )
 ;
-
-
 }
