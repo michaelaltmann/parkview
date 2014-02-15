@@ -1,11 +1,49 @@
 
-var sim; 
+var width = Math.max(960),
+    height = Math.max(500);
+var latitude = 44.9251669;
+var longitude = -93.31678;
 
-var svg = d3.select("#viz")
-        .append("svg")
-        .attr("width", 900)
-        .attr("height", 100);
-    svg
+var projection = d3.geo.mercator();
+    projection.center([longitude, latitude])
+    .scale(10000000);
+   
+
+var path = d3.geo.path()
+    .projection(projection);
+
+var tile = d3.geo.tile()
+    .scale(projection.scale() * 2 * Math.PI)
+    .translate(projection([0, 0]))
+    .zoomDelta((window.devicePixelRatio || 1) - .5);
+
+var svg = d3.select("#viz").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+
+
+function zoomed() {
+  var tiles = tile();
+  
+svg.append("g")
+    .selectAll("image")
+      .data(tiles)
+    .enter().append("image")
+      .attr("xlink:href", function(d) { 
+          var i = (Math.random() * 3 )| 0;
+          var server = ["a", "b", "c"][i];
+          return "http://" + server + ".tile.openstreetmap.org/" 
+      + d[2] + "/" + d[0] + "/" + d[1] + ".png"; })
+      .attr("width", Math.round(tiles.scale))
+      .attr("height", Math.round(tiles.scale))
+      .attr("x", function(d) { return Math.round((d[0] + tiles.translate[0]) * tiles.scale); })
+      .attr("y", function(d) { return Math.round((d[1] + tiles.translate[1]) * tiles.scale); });
+
+}
+zoomed();
+
+svg
     .append('defs')
     .append('clipPath')
     .attr('id', 'clip')
@@ -15,10 +53,17 @@ var svg = d3.select("#viz")
     .attr('cy',10)
 ;   
 
+var sim; 
 var dt = 10;
 var t = 0;
 var maxt = 500;
 var timeScale = 100;
+
+if(sim) sim.stop(); 
+sim=new Simulation(); 
+sim.initialize(); 
+showBackground();
+
 function doSimulation() {
     showBackground();
     t = dt;
@@ -27,7 +72,9 @@ function doSimulation() {
 function showStatus(s) {
     d3.select("#status").text(s);
 }
+
 function showBackground() {
+    
     svg.selectAll(".business").remove();
         svg.selectAll(".business")
         .data(sim.businesses)
@@ -104,8 +151,8 @@ function display(t) {
         .append("rect")
         .attr("class", "spotUsage")
         .style("stroke-width", "0")
-        .style("opacity", "0.5")
-        .style("fill", 'gray' )
+        .style("opacity", "0.8")
+        .style("fill", 'purple' )
         .attr("width", 20)
         .attr("height", function(d,i) { return occupancyScale * 20*d.occupancy/sim.simulationManager.now;} )
         .attr("clip-path", "url(#clip)")
@@ -116,4 +163,4 @@ function display(t) {
             return "translate("+dx+"," + dy + ")";})
 ;
 }
-var occupancyScale = 2;
+var occupancyScale = 1;

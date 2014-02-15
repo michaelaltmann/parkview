@@ -190,16 +190,25 @@ SimulationManager.prototype.addEvent = function(event) {
 };
 
 this.initialize = function () {
-    for (var i=0; i < 10; i++) {
-        this.spotManager.add( new Spot(i,0,1));
+    var x0 = 8.5;
+    var dx = .41;
+    var y0 = 4.7;
+    var dy = .077;
+    for (var i=1; i < 10; i++) {
+        this.spotManager.add( new Spot(x0 + i*dx,y0 + i*dy,1));
+    }
+    x0 = 8.4;
+    y0 = 5.2;
+    for (var i=1; i < 10; i++) {
+        this.spotManager.add( new Spot(x0 + i*dx,y0 + i*dy,1));
     }
 
     var arrivalFreq = 4.0; // about every 4 time units
     var meanDuration = 5.0; // stays about 5 time units
     var walkingTolerance = 3.5;
-    this.businesses.push(new Business(this,"Bakery", {lng: 0, lat:1}, 'yellow' , arrivalFreq, walkingTolerance, meanDuration));
-    this.businesses.push(new Business(this,"Flowers", {lng: 3, lat:1}, 'green', arrivalFreq, walkingTolerance, meanDuration));
-    this.businesses.push(new Business(this,"Hardware", {lng: 8, lat:1}, 'red' , arrivalFreq, walkingTolerance, meanDuration));
+    this.businesses.push(new Business(this,"Bakery", {lng: 11, lat:5.9}, 'yellow' , arrivalFreq, walkingTolerance, meanDuration));
+    this.businesses.push(new Business(this,"Flowers", {lng: 12, lat:7.7}, 'green', arrivalFreq, walkingTolerance, meanDuration));
+    this.businesses.push(new Business(this,"Hardware", {lng: 10, lat:7.6}, 'red' , arrivalFreq, walkingTolerance, meanDuration));
 
     this.reset();
 }
