@@ -3,9 +3,9 @@ function Simulation () {
     this.simulationManager = new SimulationManager(this);
     this.businesses = [];
     this.vehicles = [];
-
+    this.logging = false;
 this.log = function log(msg) {
-    console.log(this.simulationManager.now + " " + msg);
+    if (this.logging) console.log(this.simulationManager.now + " " + msg);
 }
 
 
@@ -18,12 +18,11 @@ Simulation.prototype.reset = function() {
     }
 };
 function Spot(lng, lat, capacity) {
-    this.lng = lng;
-    this.lat = lat;
+    this.loc = [lng,lat];
     this.capacity = capacity;
 }
 Spot.prototype.toString = function () {
-    return "["+this.lat + "," + this.lng + "]";
+    return this.loc;
 };
 
 function Business(simulation, name, loc, color, arrivalFreq, walkingTolerance, meanDuration) {
@@ -41,7 +40,7 @@ Business.prototype.nextEvent = function () {
     return new ArrivalEvent(this.simulation, t, this, this.duration(), this.walkingTolerance);
 };
 Business.prototype.toString = function () {
-    return this.name + " " + "["+this.loc.lat + "," + this.loc.lng + "]";
+    return this.name + " " + this.loc;
 };
 
 Business.prototype.duration = function () {
@@ -62,7 +61,7 @@ ArrivalEvent.prototype.execute = function () {
         this.simulation.spotManager.acquire(spot);
         var now = this.simulation.simulationManager.now;
         var departureTime = now + this.duration;
-        var v = {lat: spot.lat, lng: spot.lng, business: this.business, start: now, end: departureTime };
+        var v = {loc : spot.loc, business: this.business, start: now, end: departureTime };
         this.simulation.vehicles.push(v);
         this.simulation.simulationManager.addEvent(new DepartureEvent(this.simulation, now, departureTime, spot));
     } else {
@@ -73,7 +72,7 @@ ArrivalEvent.prototype.execute = function () {
 };
 ArrivalEvent.prototype.toString = function () {
     var loc = this.business.loc;
-    return JSON.stringify({type: "Arrival", time : this.time, duration: this.duration, loc: "["+loc.lat + "," + loc.lng + "]"});
+    return JSON.stringify({type: "Arrival", time : this.time, duration: this.duration, loc: this.loc});
 };
 
 function DepartureEvent(simulation, start, time, spot ) {
@@ -155,8 +154,8 @@ SpotManager.prototype.acquire = function(spot) {
 SpotManager.prototype.release = function(spot) {
     spot.capacity++;
 };
-SpotManager.prototype.desirability = function(location, spot, walkingTolerance) {
-    var dist =  Math.abs(spot.lng - location.lng) + Math.abs(spot.lat-location.lat);
+SpotManager.prototype.desirability = function(loc, spot, walkingTolerance) {
+    var dist =  Math.abs(spot.loc[0] - loc[0]) + Math.abs(spot.loc[1]-loc[1]);
     if (dist > walkingTolerance) return 0;
     return walkingTolerance - dist;
 };
@@ -189,31 +188,6 @@ SimulationManager.prototype.addEvent = function(event) {
     this.eventQueue.add(event);
 };
 
-this.initialize = function () {
-    var x0 = 8.5;
-    var dx = .41;
-    var y0 = 4.7;
-    var dy = .077;
-    for (var i=1; i < 10; i++) {
-        this.spotManager.add( new Spot(x0 + i*dx,y0 + i*dy,1));
-    }
-    x0 = 8.4;
-    y0 = 5.2;
-    for (var i=1; i < 10; i++) {
-        this.spotManager.add( new Spot(x0 + i*dx,y0 + i*dy,1));
-    }
-
-    var arrivalFreq = 4.0; // about every 4 time units
-    var meanDuration = 5.0; // stays about 5 time units
-    var walkingTolerance = 3.5;
-    this.businesses.push(new Business(this,"Bakery", {lng: 11, lat:5.9}, 'yellow' , arrivalFreq, walkingTolerance, meanDuration));
-    this.businesses.push(new Business(this,"Flowers", {lng: 12, lat:7.7}, 'green', arrivalFreq, walkingTolerance, meanDuration));
-    this.businesses.push(new Business(this,"Hardware", {lng: 10, lat:7.6}, 'red' , arrivalFreq, walkingTolerance, meanDuration));
-
-    this.reset();
-}
-
-
 
 this.runUntil = function (time) {
     this.simulationManager.runUntil(time);
@@ -221,5 +195,10 @@ this.runUntil = function (time) {
 this.stop = function () {
     this.simulationManager.endTime =0;
 }
+this.addSpot = function (lng, lat, capacity) {
+    this.spotManager.add( new Spot(lng, lat, capacity));
 }
-
+this.addBusiness = function(name, loc, color, arrivalFreq, walkingTolerance, meanDuration) {
+    this.businesses.push(new Business(this, name, loc, color, arrivalFreq, walkingTolerance, meanDuration));
+}
+}
