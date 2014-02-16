@@ -56,8 +56,8 @@ svg
 var sim; 
 var dt = 10;
 var t = 0;
-var maxt = 1000;
-var timeScale = 200;
+var maxt = 5000;
+var timeScale = 100;
 
 if(sim) sim.stop(); 
 sim=new Simulation(); 
@@ -79,28 +79,32 @@ function showBackground() {
         svg.selectAll(".business")
         .data(sim.businesses)
         .enter()
-        .append("rect")
+        .append("circle")
         .attr("class", "business")
-        .style("stroke", "black")
+        .style("stroke", "none")
         .style("fill", function(d,i) { return d.color;} )
-        .attr("width", 10)
-        .attr("height", 20)
-        .attr("x", function(d,i) { return projection(d.loc)[0]-5;} )
-        .attr("y", function(d,i) { return projection(d.loc)[1]-10;} )
+        .attr("r", 10)
+        .attr("cx", function(d,i) { return projection(d.loc)[0]-5;} )
+        .attr("cy", function(d,i) { return projection(d.loc)[1]-10;} )
         ;
     
     svg.selectAll(".spot").remove();
     svg.selectAll(".spot")
         .data(sim.spotManager.spots)
         .enter()
-        .append("circle")
+        .append("rect")
         .attr("class", "spot")
-        .style("stroke", "black")
-        .style("opacity", "1.0")
-        .style("fill", "none" )
-        .attr("r", 12)
-        .attr("cx", function(d,i) { return projection(d.loc)[0];} )
-        .attr("cy", function(d,i) { return  projection(d.loc)[1];} )
+        .style("stroke", "purple")
+        .style("opacity", ".3")
+        .style("fill", "white" )
+        .attr("width", 8 )
+        .attr("height", 18)
+        .attr("x" ,0)
+        .attr("y", 0)
+        .attr('transform',function(d) { 
+            var dx = projection(d.loc)[0];
+            var dy = projection(d.loc)[1];
+            return "translate("+dx+"," + dy + ") rotate(-80)";})
 ;
 
 
@@ -121,23 +125,24 @@ function display(t) {
     svg.selectAll(".vehicle")
         .data(sim.vehicles)
         .enter()
-        .append("circle")
+        .append("rect")
         .attr("class", "vehicle")
-        .attr("cx", function(d,i) { return projection(d.loc)[0];} )
-        .attr("cy", function(d,i) { return projection(d.loc)[1];} )
+           .transition()
         .transition()
+        .duration(0)
+        .attr("x" ,0)
+        .attr("y", 0)
+        .attr('transform',function(d) { 
+            var dx = projection(d.loc)[0]-1;
+            var dy = projection(d.loc)[1]+1;
+            return "translate("+dx+"," + dy + ") rotate(-80)";})
         .each('start',function(d,i) {showStatus(d.start);})
-        .delay(function(d,i) { return timeScale * (d.start - sim.simulationManager.now + dt); })
-        .duration(30)
-        .style("stroke", "gray")
-        .style("opacity", "0.7")
-        .style("fill", function(d,i) { return d.business.color;} )
-        .attr("r", 10)
-        .attr("cx", function(d,i) { return projection(d.loc)[0];} )
-        .attr("cy", function(d,i) { return  projection(d.loc)[1];} )
         .transition()
-        .duration(30)
-        .attr("r", 7)
+        .delay(function(d,i) { return timeScale * (d.start - sim.simulationManager.now + dt); }) 
+        .style("stroke", function(d,i) { return d.business.color;} )
+        .style("fill","none")
+        .attr("width", 10 )
+        .attr("height", 20)    
         .transition()
         .duration(function (d,i) { return  -60+ timeScale*(d.end-d.start); })
         .each('end',function(d,i) {showStatus(d.end);})
@@ -150,26 +155,28 @@ function display(t) {
         .enter()
         .append("rect")
         .attr("class", "spotUsage")
-        .style("stroke-width", "0")
-        .style("opacity", "0.9")
-        .style("fill", 'purple' )
-        .attr("width", 20)
-        .attr("height", function(d,i) { return occupancyScale * 20*d.occupancy/sim.simulationManager.now;} )
-        .attr("clip-path", "url(#clip)")
-        .attr("y", function(d,i) { return 20 - occupancyScale* 20*d.occupancy/sim.simulationManager.now;} )
+        .style("fill", "purple")
+        .style("opacity", function (d,i) {
+            var  x = d.occupancy/sim.simulationManager.now;
+            return x;
+        } )
+        .attr("width", 8 )
+        .attr("height", 18)
+        .attr("x" ,0)
+        .attr("y", 0)
         .attr('transform',function(d) { 
-            var dx = projection(d.loc)[0]-10;
-            var dy = projection(d.loc)[1]-10;
-            return "translate("+dx+"," + dy + ")";})
-;
+            var dx = projection(d.loc)[0];
+            var dy = projection(d.loc)[1];
+            return "translate("+dx+"," + dy + ") rotate(-80)";})
+        ;
 }
 var occupancyScale = 1;
 
 function buildCity () {
-    var x0 = -93.31587016582489;
-    var dx =   (-93.3146-x0)/10;
-    var y0 = 44.9248;
-    var dy =  (44.924657382371365 - y0)/10;
+    var x0 = -93.3160;
+    var dx =   (-93.3147-x0)/10;
+    var y0 = 44.92479;
+    var dy =  (44.92465 - y0)/10;
     for (var i=0; i < 10; i++) {
         sim.addSpot(x0 + i*dx,y0 + i*dy,1);
     }
@@ -182,9 +189,9 @@ function buildCity () {
     var arrivalFreq = 4.0; // about every 4 time units
     var meanDuration = 5.0; // stays about 5 time units
     var walkingTolerance = 3.5;
-    sim.addBusiness("Bakery", [x0 + 5*dx,  y0-10*dy], 'yellow' , arrivalFreq, walkingTolerance, meanDuration);
-    sim.addBusiness("Flowers", [x0+ 8*dx,  y0+15*dy], 'green', arrivalFreq, walkingTolerance, meanDuration);
-    sim.addBusiness("Hardware", [x0+3*dx, y0+9*dy], 'red' , arrivalFreq, walkingTolerance, meanDuration);
+    sim.addBusiness("Bakery", [x0 + 6*dx,  y0-10*dy], 'yellow' , arrivalFreq, walkingTolerance, meanDuration);
+    sim.addBusiness("Flowers", [x0+ 9*dx,  y0+18*dy], 'green', arrivalFreq, walkingTolerance, meanDuration);
+    sim.addBusiness("Hardware", [x0+3.5*dx, y0+10*dy], 'red' , arrivalFreq, walkingTolerance, meanDuration);
 
     sim.reset();
 }
